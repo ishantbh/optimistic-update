@@ -2,18 +2,36 @@
 
 import { useState } from 'react'
 
-import type { Todo } from '@/lib/types'
+import type { Todo } from '@/db/schema'
+import { deleteTodo, toggleTodo, updateTodo } from '@/lib/actions'
 
 type Props = {
   todo: Todo
-  onToggle: (id: string) => void
-  onUpdate: (id: string, title: string) => void
-  onDelete: (id: string) => void
 }
 
-export function TodoItem({ todo, onToggle, onUpdate, onDelete }: Props) {
+export function TodoItem({ todo }: Props) {
   const [isEditing, setIsEditing] = useState(false)
   const [title, setTitle] = useState(todo.title)
+
+  async function handleToggle() {
+    const result = await toggleTodo(todo.id)
+
+    if (!result.success) return alert(result.error)
+  }
+
+  async function handleUpdate() {
+    if (!title.trim()) return
+
+    const result = await updateTodo(todo.id, title.trim())
+
+    if (!result.success) return alert(result.error)
+  }
+
+  async function handleDelete() {
+    const result = await deleteTodo(todo.id)
+
+    if (!result.success) return alert(result.error)
+  }
 
   return (
     <li className='flex items-center gap-4 px-4 rounded-md hover:bg-gray-700 even:bg-gray-800'>
@@ -29,15 +47,19 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }: Props) {
           <input
             type='checkbox'
             checked={todo.done}
-            onChange={() => onToggle(todo.id)}
+            onChange={handleToggle}
             className='size-4'
           />
-          <span className='text-lg'>{todo.title}</span>
+          <span
+            className={`text-lg ${todo.done ? 'line-through text-gray-400' : ''}`}
+          >
+            {todo.title}
+          </span>
         </label>
       )}
       <button
         onClick={() => {
-          if (isEditing) onUpdate(todo.id, title)
+          if (isEditing) handleUpdate()
           setIsEditing(!isEditing)
         }}
         className='bg-blue-500 text-white px-2 py-1 rounded-md text-sm'
@@ -45,7 +67,7 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }: Props) {
         {isEditing ? 'Save' : 'Edit'}
       </button>
       <button
-        onClick={() => onDelete(todo.id)}
+        onClick={handleDelete}
         className='bg-red-500 text-white px-2 py-1 rounded-md text-sm'
       >
         Delete

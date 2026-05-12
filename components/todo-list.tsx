@@ -1,30 +1,25 @@
-import type { Todo } from '@/lib/types'
+import { desc } from 'drizzle-orm'
+
+import { db } from '@/db'
 import { TodoItem } from '@/components/todo-item'
+import { todoTable } from '@/db/schema'
 
-type Props = {
-  todos: Todo[]
-  onToggle: (id: string) => void
-  onUpdate: (id: string, title: string) => void
-  onDelete: (id: string) => void
-}
+export async function TodoList() {
+  const todos = await db.query.todoTable.findMany({
+    orderBy: desc(todoTable.createdAt),
+  })
 
-export function TodoList({ todos, onToggle, onUpdate, onDelete }: Props) {
   return (
-    <ul className='flex flex-col'>
+    <>
       {todos.length === 0 && (
-        <li className='text-center text-xl'>
-          <span className='text-gray-400'>No todos yet</span>
-        </li>
+        <p className='text-center text-xl text-gray-400'>No todos yet</p>
       )}
-      {todos.map((todo) => (
-        <TodoItem
-          key={todo.id}
-          todo={todo}
-          onToggle={onToggle}
-          onUpdate={onUpdate}
-          onDelete={onDelete}
-        />
-      ))}
-    </ul>
+
+      <ul className='flex flex-col'>
+        {todos.map((todo) => (
+          <TodoItem key={todo.id} todo={todo} />
+        ))}
+      </ul>
+    </>
   )
 }

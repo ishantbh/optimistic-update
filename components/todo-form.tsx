@@ -2,19 +2,20 @@
 
 import { useState } from 'react'
 
-type Props = {
-  onSubmit: (text: string) => void
-}
+import { addTodo } from '@/lib/actions'
 
-export function TodoForm({ onSubmit }: Props) {
+export function TodoForm() {
   const [title, setTitle] = useState('')
 
-  function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
 
     if (!title.trim()) return
 
-    onSubmit(title.trim())
+    const result = await addTodo(title.trim())
+
+    if (!result.success) return alert(result.error)
+
     setTitle('')
   }
 
