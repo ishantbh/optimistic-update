@@ -1,1 +1,6 @@
-export type TodoType = { id: string; title: string; done: boolean }
+export type TodoType = {
+  id: string
+  title: string
+  done: boolean
+  createdAt: Date
+}

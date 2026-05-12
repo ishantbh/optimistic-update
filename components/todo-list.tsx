@@ -7,7 +7,8 @@ import { deleteTodo, toggleTodo, updateTodo } from '@/lib/actions'
 import { TodoItem } from '@/components/todo-item'
 
 type OptimisticAction =
-  | { type: 'toggle'; id: string }
+  | { type: 'add'; todo: TodoType }
+  | { type: 'toggle'; id: string; done?: boolean }
   | { type: 'delete'; id: string }
   | { type: 'update'; id: string; title: string }
 
@@ -21,9 +22,16 @@ export function TodoList({ todos }: Props) {
     OptimisticAction
   >(todos, (state, action) => {
     switch (action.type) {
+      case 'add':
+        return [...state, action.todo].toSorted(
+          (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+        )
+
       case 'toggle':
         return state.map((todo) =>
-          todo.id === action.id ? { ...todo, done: !todo.done } : todo,
+          todo.id === action.id
+            ? { ...todo, done: action.done ?? !todo.done }
+            : todo,
         )
       case 'update':
         return state.map((todo) =>
@@ -38,10 +46,22 @@ export function TodoList({ todos }: Props) {
 
   function handleToggle(id: string) {
     startTransition(async () => {
+      const prevTodo = optimisticTodos.find((todo) => todo.id === id)
+
       applyOptimistic({ type: 'toggle', id })
 
       const result = await toggleTodo(id)
-      if (!result.success) return alert(result.error)
+      if (!result.success) {
+        // rollback
+        if (prevTodo)
+          applyOptimistic({
+            type: 'toggle',
+            id: prevTodo.id,
+            done: prevTodo.done,
+          })
+
+        return alert(result.error)
+      }
     })
   }
 
@@ -49,19 +69,42 @@ export function TodoList({ todos }: Props) {
     if (!title.trim()) return
 
     startTransition(async () => {
+      const prevTodo = optimisticTodos.find((todo) => todo.id === id)
+
       applyOptimistic({ type: 'update', id, title })
 
       const result = await updateTodo(id, title.trim())
-      if (!result.success) return alert(result.error)
+      if (!result.success) {
+        // rollback
+        if (prevTodo)
+          applyOptimistic({
+            type: 'update',
+            id: prevTodo.id,
+            title: prevTodo.title,
+          })
+
+        return alert(result.error)
+      }
     })
   }
 
   function handleDelete(id: string) {
     startTransition(async () => {
+      const prevTodo = optimisticTodos.find((todo) => todo.id === id)
+
       applyOptimistic({ type: 'delete', id })
 
       const result = await deleteTodo(id)
-      if (!result.success) return alert(result.error)
+      if (!result.success) {
+        // rollback
+        if (prevTodo)
+          applyOptimistic({
+            type: 'add',
+            todo: prevTodo,
+          })
+
+        return alert(result.error)
+      }
     })
   }
 

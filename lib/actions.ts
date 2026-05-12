@@ -29,15 +29,15 @@ export async function addTodo(title: string): Promise<ActionResult> {
 
 export async function toggleTodo(id: string): Promise<ActionResult> {
   // Simulate latency
-  await new Promise((resolve) => setTimeout(resolve, 3000))
+  // await new Promise((resolve) => setTimeout(resolve, 3000))
 
   try {
+    // throw new Error('Tesing toggle rollback')
+
     await db
       .update(todoTable)
       .set({ done: not(todoTable.done) })
       .where(eq(todoTable.id, id))
-
-    revalidatePath('/')
 
     return { success: true }
   } catch (err) {
@@ -47,6 +47,8 @@ export async function toggleTodo(id: string): Promise<ActionResult> {
       success: false,
       error: err instanceof Error ? err.message : 'Error toggling todo',
     }
+  } finally {
+    revalidatePath('/')
   }
 }
 
@@ -55,11 +57,13 @@ export async function updateTodo(
   title: string,
 ): Promise<ActionResult> {
   // Simulate latency
-  await new Promise((resolve) => setTimeout(resolve, 3000))
+  // await new Promise((resolve) => setTimeout(resolve, 3000))
 
   if (!title.trim()) return { success: false, error: 'Title cannot be empty' }
 
   try {
+    // throw new Error('Tesing update rollback')
+
     await db.update(todoTable).set({ title }).where(eq(todoTable.id, id))
 
     revalidatePath('/')
@@ -72,17 +76,19 @@ export async function updateTodo(
       success: false,
       error: err instanceof Error ? err.message : 'Error updating todo',
     }
+  } finally {
+    revalidatePath('/')
   }
 }
 
 export async function deleteTodo(id: string): Promise<ActionResult> {
   // Simulate latency
-  await new Promise((resolve) => setTimeout(resolve, 3000))
+  // await new Promise((resolve) => setTimeout(resolve, 3000))
 
   try {
-    await db.delete(todoTable).where(eq(todoTable.id, id))
+    // throw new Error('Tesing delete rollback')
 
-    revalidatePath('/')
+    await db.delete(todoTable).where(eq(todoTable.id, id))
 
     return { success: true }
   } catch (err) {
@@ -92,5 +98,7 @@ export async function deleteTodo(id: string): Promise<ActionResult> {
       success: false,
       error: err instanceof Error ? err.message : 'Error deleting todo',
     }
+  } finally {
+    revalidatePath('/')
   }
 }
