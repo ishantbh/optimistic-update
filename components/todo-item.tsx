@@ -1,19 +1,35 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import type { TodoType } from '@/lib/types'
+import { useToggleTodo } from '@/hooks/use-toggle-todo'
+import { useUpdateTodo } from '@/hooks/use-update-todo'
+import { useDeleteTodo } from '@/hooks/use-delete-todo'
 
 type Props = {
   todo: TodoType
-  onToggle: (id: string) => void
-  onUpdate: (id: string, title: string) => void
-  onDelete: (id: string) => void
 }
 
-export function TodoItem({ todo, onToggle, onUpdate, onDelete }: Props) {
+export function TodoItem({ todo }: Props) {
   const [isEditing, setIsEditing] = useState(false)
   const [title, setTitle] = useState(todo.title)
+
+  const { mutate: toggleTodo, error: toggleError } = useToggleTodo()
+  const { mutate: updateTodo, error: updateError } = useUpdateTodo()
+  const { mutate: deleteTodo, error: deleteError } = useDeleteTodo()
+
+  useEffect(() => {
+    if (toggleError) alert(toggleError)
+  }, [toggleError])
+
+  useEffect(() => {
+    if (updateError) alert(updateError)
+  }, [updateError])
+
+  useEffect(() => {
+    if (deleteError) alert(deleteError)
+  }, [deleteError])
 
   return (
     <li className='flex items-center gap-4 px-4 rounded-md hover:bg-gray-700 even:bg-gray-800'>
@@ -29,7 +45,7 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }: Props) {
           <input
             type='checkbox'
             checked={todo.done}
-            onChange={() => onToggle(todo.id)}
+            onChange={() => toggleTodo(todo.id)}
             className='size-4'
           />
           <span
@@ -41,7 +57,7 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }: Props) {
       )}
       <button
         onClick={() => {
-          if (isEditing) onUpdate(todo.id, title)
+          if (isEditing) updateTodo({ id: todo.id, title })
           setIsEditing(!isEditing)
         }}
         className='bg-blue-500 text-white px-2 py-1 rounded-md text-sm'
@@ -49,7 +65,7 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }: Props) {
         {isEditing ? 'Save' : 'Edit'}
       </button>
       <button
-        onClick={() => onDelete(todo.id)}
+        onClick={() => deleteTodo(todo.id)}
         className='bg-red-500 text-white px-2 py-1 rounded-md text-sm'
       >
         Delete

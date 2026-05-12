@@ -15,7 +15,7 @@ export async function TodoApp() {
       <h1 className='text-4xl font-bold'>Todo App</h1>
       <div className='w-full max-w-md space-y-8'>
         <TodoForm />
-        <TodoList todos={todos} />
+        <TodoList initialTodos={todos} />
       </div>
     </div>
   )
