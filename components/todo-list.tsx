@@ -1,15 +1,10 @@
 'use client'
 
-import type { TodoType } from '@/lib/types'
 import { useTodos } from '@/hooks/use-todos'
 import { TodoItem } from '@/components/todo-item'
 
-type Props = {
-  initialTodos: TodoType[]
-}
-
-export function TodoList({ initialTodos }: Props) {
-  const { data: todos = [] } = useTodos(initialTodos)
+export function TodoList() {
+  const { data: todos = [] } = useTodos()
 
   return (
     <>

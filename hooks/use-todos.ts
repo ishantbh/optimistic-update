@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 
 import { TodoType } from '@/lib/types'
 
@@ -10,10 +10,9 @@ async function getTodos() {
   return res.json()
 }
 
-export function useTodos(initialTodos: TodoType[]) {
-  return useQuery<TodoType[]>({
+export function useTodos() {
+  return useSuspenseQuery<TodoType[]>({
     queryKey: ['todos'],
     queryFn: getTodos,
-    initialData: initialTodos,
   })
 }
