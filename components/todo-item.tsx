@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { startTransition, useOptimistic, useState } from 'react'
 
 import type { Todo } from '@/db/schema'
 import { deleteTodo, toggleTodo, updateTodo } from '@/lib/actions'
@@ -10,21 +10,32 @@ type Props = {
 }
 
 export function TodoItem({ todo }: Props) {
+  const [optimisticTodo, setOptimisticTodo] = useOptimistic(todo)
   const [isEditing, setIsEditing] = useState(false)
-  const [title, setTitle] = useState(todo.title)
+  const [title, setTitle] = useState(optimisticTodo.title)
 
-  async function handleToggle() {
-    const result = await toggleTodo(todo.id)
+  function handleToggle() {
+    const updatedTodo: Todo = { ...optimisticTodo, done: !optimisticTodo.done }
 
-    if (!result.success) return alert(result.error)
+    startTransition(async () => {
+      setOptimisticTodo(updatedTodo)
+
+      const result = await toggleTodo(todo.id)
+      if (!result.success) return alert(result.error)
+    })
   }
 
-  async function handleUpdate() {
+  function handleUpdate() {
     if (!title.trim()) return
 
-    const result = await updateTodo(todo.id, title.trim())
+    const updatedTodo: Todo = { ...optimisticTodo, title: title.trim() }
 
-    if (!result.success) return alert(result.error)
+    startTransition(async () => {
+      setOptimisticTodo(updatedTodo)
+
+      const result = await updateTodo(todo.id, title.trim())
+      if (!result.success) return alert(result.error)
+    })
   }
 
   async function handleDelete() {
@@ -46,14 +57,14 @@ export function TodoItem({ todo }: Props) {
         <label className='flex-1 flex items-center py-4 gap-4'>
           <input
             type='checkbox'
-            checked={todo.done}
+            checked={optimisticTodo.done}
             onChange={handleToggle}
             className='size-4'
           />
           <span
-            className={`text-lg ${todo.done ? 'line-through text-gray-400' : ''}`}
+            className={`text-lg ${optimisticTodo.done ? 'line-through text-gray-400' : ''}`}
           >
-            {todo.title}
+            {optimisticTodo.title}
           </span>
         </label>
       )}
