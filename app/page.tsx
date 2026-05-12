@@ -1,3 +1,5 @@
+import { TodoApp } from '@/components/todo-app'
+
 export default function HomePage() {
-  return <div>Home Page</div>
+  return <TodoApp />
 }
