@@ -7,6 +7,7 @@ import { db } from '@/db'
 import { todoTable } from '@/db/schema'
 import { TodoForm } from '@/components/todo-form'
 import { TodoList } from '@/components/todo-list'
+import { TodoItemSkeleton } from '@/components/todo-item-skeleton'
 
 export async function TodoApp() {
   const queryClient = getQueryClient()
@@ -14,7 +15,9 @@ export async function TodoApp() {
   void queryClient.prefetchQuery({
     queryKey: ['todos'],
     queryFn: () =>
-      db.query.todoTable.findMany({ orderBy: desc(todoTable.createdAt) }),
+      db.query.todoTable.findMany({
+        orderBy: desc(todoTable.createdAt),
+      }),
   })
 
   return (
@@ -23,7 +26,7 @@ export async function TodoApp() {
       <div className='w-full max-w-md space-y-8'>
         <TodoForm />
         <HydrationBoundary state={dehydrate(queryClient)}>
-          <Suspense fallback={<p>Loading...</p>}>
+          <Suspense fallback={<TodoItemSkeleton />}>
             <TodoList />
           </Suspense>
         </HydrationBoundary>
