@@ -1,48 +1,19 @@
 'use client'
 
-import { startTransition, useOptimistic, useState } from 'react'
+import { useState } from 'react'
 
-import type { Todo } from '@/db/schema'
-import { deleteTodo, toggleTodo, updateTodo } from '@/lib/actions'
+import type { TodoType } from '@/lib/types'
 
 type Props = {
-  todo: Todo
+  todo: TodoType
+  onToggle: (id: string) => void
+  onUpdate: (id: string, title: string) => void
+  onDelete: (id: string) => void
 }
 
-export function TodoItem({ todo }: Props) {
-  const [optimisticTodo, setOptimisticTodo] = useOptimistic(todo)
+export function TodoItem({ todo, onToggle, onUpdate, onDelete }: Props) {
   const [isEditing, setIsEditing] = useState(false)
-  const [title, setTitle] = useState(optimisticTodo.title)
-
-  function handleToggle() {
-    const updatedTodo: Todo = { ...optimisticTodo, done: !optimisticTodo.done }
-
-    startTransition(async () => {
-      setOptimisticTodo(updatedTodo)
-
-      const result = await toggleTodo(todo.id)
-      if (!result.success) return alert(result.error)
-    })
-  }
-
-  function handleUpdate() {
-    if (!title.trim()) return
-
-    const updatedTodo: Todo = { ...optimisticTodo, title: title.trim() }
-
-    startTransition(async () => {
-      setOptimisticTodo(updatedTodo)
-
-      const result = await updateTodo(todo.id, title.trim())
-      if (!result.success) return alert(result.error)
-    })
-  }
-
-  async function handleDelete() {
-    const result = await deleteTodo(todo.id)
-
-    if (!result.success) return alert(result.error)
-  }
+  const [title, setTitle] = useState(todo.title)
 
   return (
     <li className='flex items-center gap-4 px-4 rounded-md hover:bg-gray-700 even:bg-gray-800'>
@@ -57,20 +28,20 @@ export function TodoItem({ todo }: Props) {
         <label className='flex-1 flex items-center py-4 gap-4'>
           <input
             type='checkbox'
-            checked={optimisticTodo.done}
-            onChange={handleToggle}
+            checked={todo.done}
+            onChange={() => onToggle(todo.id)}
             className='size-4'
           />
           <span
-            className={`text-lg ${optimisticTodo.done ? 'line-through text-gray-400' : ''}`}
+            className={`text-lg ${todo.done ? 'line-through text-gray-400' : ''}`}
           >
-            {optimisticTodo.title}
+            {todo.title}
           </span>
         </label>
       )}
       <button
         onClick={() => {
-          if (isEditing) handleUpdate()
+          if (isEditing) onUpdate(todo.id, title)
           setIsEditing(!isEditing)
         }}
         className='bg-blue-500 text-white px-2 py-1 rounded-md text-sm'
@@ -78,7 +49,7 @@ export function TodoItem({ todo }: Props) {
         {isEditing ? 'Save' : 'Edit'}
       </button>
       <button
-        onClick={handleDelete}
+        onClick={() => onDelete(todo.id)}
         className='bg-red-500 text-white px-2 py-1 rounded-md text-sm'
       >
         Delete

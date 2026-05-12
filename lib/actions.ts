@@ -37,6 +37,8 @@ export async function toggleTodo(id: string): Promise<ActionResult> {
       .set({ done: not(todoTable.done) })
       .where(eq(todoTable.id, id))
 
+    revalidatePath('/')
+
     return { success: true }
   } catch (err) {
     console.log(err)
@@ -60,6 +62,8 @@ export async function updateTodo(
   try {
     await db.update(todoTable).set({ title }).where(eq(todoTable.id, id))
 
+    revalidatePath('/')
+
     return { success: true }
   } catch (err) {
     console.log(err)
@@ -72,6 +76,9 @@ export async function updateTodo(
 }
 
 export async function deleteTodo(id: string): Promise<ActionResult> {
+  // Simulate latency
+  await new Promise((resolve) => setTimeout(resolve, 3000))
+
   try {
     await db.delete(todoTable).where(eq(todoTable.id, id))
 
